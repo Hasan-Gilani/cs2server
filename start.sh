@@ -35,6 +35,16 @@ if [[ ! -f "$CS2_BIN" ]]; then
     exit 1
 fi
 
+# ── Steam runtime setup ───────────────────────────────────────────────────────
+# Ensure steamclient.so is discoverable by the game
+mkdir -p "$HOME/.steam/sdk64"
+if [[ ! -f "$HOME/.steam/sdk64/steamclient.so" ]]; then
+    ln -sf "$HOME/steamcmd/linux64/steamclient.so" "$HOME/.steam/sdk64/steamclient.so"
+fi
+
+# CS2 libraries must be on the path — libv8.so and others live here
+export LD_LIBRARY_PATH="$CS2_DIR/game/bin/linuxsteamrt64:$CS2_DIR/game/bin:${LD_LIBRARY_PATH:-}"
+
 # ── Build launch args ─────────────────────────────────────────────────────────
 ARGS=(
     -dedicated
