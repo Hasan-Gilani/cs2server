@@ -77,11 +77,12 @@ PYEOF
 
 TIMESTAMP="$(date -u '+%H:%M UTC')"
 
-# Build steam:// connect URL (includes password if set)
+# Build HTTPS connect URL (GitHub Pages redirect → steam://)
+CONNECT_BASE="https://hasan-gilani.github.io/cs2server/connect.html"
 if [[ -n "$SERVER_PASSWORD" ]]; then
-    STEAM_URL="steam://connect/$PUBLIC_IP:$PORT/$SERVER_PASSWORD"
+    CONNECT_URL="${CONNECT_BASE}?ip=${PUBLIC_IP}&port=${PORT}&pw=${SERVER_PASSWORD}"
 else
-    STEAM_URL="steam://connect/$PUBLIC_IP:$PORT"
+    CONNECT_URL="${CONNECT_BASE}?ip=${PUBLIC_IP}&port=${PORT}"
 fi
 
 # ── Build embed based on CS2 state ───────────────────────────────────────────
@@ -118,7 +119,7 @@ PAYLOAD=$(cat <<EOF
       { "name": "IP",      "value": "\`$PUBLIC_IP:$PORT\`",        "inline": true },
       { "name": "Players", "value": "$PLAYERS_VAL",                "inline": true },
       { "name": "Map",     "value": "$MAP_VAL",                    "inline": true },
-      { "name": "Connect", "value": "[▶ Join Server]($STEAM_URL)\n\`connect $PUBLIC_IP:$PORT\`", "inline": false }
+      { "name": "Connect", "value": "[▶ Join Server]($CONNECT_URL)\n\`connect $PUBLIC_IP:$PORT\`", "inline": false }
     ],
     "footer": { "text": "Updated $TIMESTAMP • refreshes every minute" }
   }]
