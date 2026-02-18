@@ -1,0 +1,15 @@
+[Unit]
+Description=CS2 Dedicated Server
+After=network-online.target discord-notify.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=ubuntu
+ExecStart=/bin/bash /home/ubuntu/start.sh
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

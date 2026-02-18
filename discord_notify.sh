@@ -1,7 +1,7 @@
 #!/bin/bash
 # CS2 Server — Discord startup notification
-# Posts the server's public IP to a Discord webhook on boot.
-# Saves the message ID so discord_status.sh can edit it live.
+# Posts an initial status embed and optionally pins it.
+# Saves message ID + channel ID so discord_status.sh can edit and re-pin.
 
 set -euo pipefail
 
@@ -21,6 +21,7 @@ if [[ -z "$DISCORD_WEBHOOK_URL" ]]; then
     exit 0
 fi
 
+DISCORD_BOT_TOKEN="${DISCORD_BOT_TOKEN:-}"
 SERVER_NAME="${SERVER_NAME:-CS2 Server}"
 PORT="${PORT:-27015}"
 
@@ -41,7 +42,6 @@ get_public_ip() {
     fi
 }
 
-# Retry up to 12 times (60 s)
 PUBLIC_IP=""
 for i in $(seq 1 12); do
     PUBLIC_IP=$(get_public_ip)
@@ -50,10 +50,7 @@ for i in $(seq 1 12); do
     sleep 5
 done
 
-if [[ -z "$PUBLIC_IP" ]]; then
-    echo "WARNING: Could not retrieve public IP."
-    PUBLIC_IP="(unknown)"
-fi
+[[ -z "$PUBLIC_IP" ]] && PUBLIC_IP="(unknown)"
 
 TIMESTAMP="$(date -u '+%H:%M UTC')"
 
@@ -64,7 +61,7 @@ PAYLOAD=$(cat <<EOF
     "color": 15844367,
     "fields": [
       { "name": "IP",      "value": "\`$PUBLIC_IP:$PORT\`",        "inline": true },
-      { "name": "Players", "value": "Starting...",                  "inline": true },
+      { "name": "Players", "value": "—",                            "inline": true },
       { "name": "Map",     "value": "—",                            "inline": true },
       { "name": "Connect", "value": "\`connect $PUBLIC_IP:$PORT\`", "inline": false }
     ],
@@ -74,22 +71,39 @@ PAYLOAD=$(cat <<EOF
 EOF
 )
 
-# ── POST (wait=true to get message ID back) ───────────────────────────────────
+# ── POST (wait=true to get message object back) ───────────────────────────────
 RESPONSE=$(curl -s -X POST "${DISCORD_WEBHOOK_URL}?wait=true" \
     -H "Content-Type: application/json" \
     -d "$PAYLOAD")
 
-MESSAGE_ID=$(echo "$RESPONSE" | python3 -c "import json,sys; print(json.load(sys.stdin)['id'])" 2>/dev/null || true)
+MESSAGE_ID=$(echo "$RESPONSE" | python3 -c "import json,sys; print(json.load(sys.stdin)['id'])"          2>/dev/null || true)
+CHANNEL_ID=$(echo "$RESPONSE" | python3 -c "import json,sys; print(json.load(sys.stdin)['channel_id'])"  2>/dev/null || true)
 
 if [[ -z "$MESSAGE_ID" ]]; then
     echo "Failed to get message ID from Discord response: $RESPONSE"
     exit 1
 fi
 
-# Save state for discord_status.sh
+# ── Save state ────────────────────────────────────────────────────────────────
 cat > "$STATE_FILE" <<EOF
 MESSAGE_ID=$MESSAGE_ID
+CHANNEL_ID=$CHANNEL_ID
 PUBLIC_IP=$PUBLIC_IP
 EOF
 
 echo "Discord notification sent. IP: $PUBLIC_IP:$PORT (message ID: $MESSAGE_ID)"
+
+# ── Pin the message (requires bot token) ─────────────────────────────────────
+if [[ -n "$DISCORD_BOT_TOKEN" && -n "$CHANNEL_ID" ]]; then
+    PIN_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+        -X PUT "https://discord.com/api/v10/channels/${CHANNEL_ID}/pins/${MESSAGE_ID}" \
+        -H "Authorization: Bot ${DISCORD_BOT_TOKEN}" \
+        -H "Content-Length: 0")
+    if [[ "$PIN_STATUS" == "204" ]]; then
+        echo "Message pinned."
+    else
+        echo "Pin failed (HTTP $PIN_STATUS) — you can pin the message manually in Discord."
+    fi
+else
+    echo "Tip: set DISCORD_BOT_TOKEN in .env to auto-pin the status message."
+fi

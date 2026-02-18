@@ -1,6 +1,7 @@
 #!/bin/bash
 # CS2 Server — Discord live status updater
-# Edits the message posted by discord_notify.sh with current player count and map.
+# Edits the pinned message with live CS2 status (player count, map).
+# If the message was deleted, re-posts and re-pins automatically.
 # Run by discord-status.timer every minute.
 
 set -euo pipefail
@@ -26,7 +27,7 @@ PORT="${PORT:-27015}"
 SERVER_NAME="${SERVER_NAME:-CS2 Server}"
 
 # ── Query CS2 via A2S_INFO (Source query protocol) ───────────────────────────
-# Outputs:  players|max_players|map_name   or   offline
+# Outputs: players|max_players|map_name   or   offline
 A2S_RESULT=$(python3 - <<'PYEOF' 2>/dev/null || echo "offline"
 import socket
 
@@ -47,7 +48,7 @@ def query(host, port, timeout=2):
         if len(data) < 6 or data[4] != 0x49:  # 0x49 = 'I' (info response)
             return None
 
-        i = [6]  # mutable for nested closure
+        i = [6]  # mutable index for nested closure
 
         def read_str():
             end = data.index(0, i[0])
@@ -75,11 +76,15 @@ PYEOF
 
 TIMESTAMP="$(date -u '+%H:%M UTC')"
 
-# ── Build embed based on query result ────────────────────────────────────────
+# ── Build embed based on CS2 state ───────────────────────────────────────────
+# Status is determined entirely by whether CS2 responds to A2S_INFO queries.
+# EC2 instance state is irrelevant.
+
 if [[ "$A2S_RESULT" == "offline" || -z "$A2S_RESULT" ]]; then
+    # CS2 not responding — check if the process exists at all
     if pgrep -f "linuxsteamrt64/cs2" > /dev/null 2>&1; then
         TITLE=":yellow_circle: $SERVER_NAME — Starting"
-        COLOR=15844367  # gold / yellow
+        COLOR=15844367  # gold
         PLAYERS_VAL="Starting..."
         MAP_VAL="—"
     else
@@ -113,8 +118,14 @@ PAYLOAD=$(cat <<EOF
 EOF
 )
 
-# ── PATCH the existing Discord message ───────────────────────────────────────
-curl -s -o /dev/null -X PATCH \
-    "${DISCORD_WEBHOOK_URL}/messages/${MESSAGE_ID}" \
+# ── PATCH the pinned message ──────────────────────────────────────────────────
+HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+    -X PATCH "${DISCORD_WEBHOOK_URL}/messages/${MESSAGE_ID}" \
     -H "Content-Type: application/json" \
-    -d "$PAYLOAD"
+    -d "$PAYLOAD")
+
+# If the message was deleted, re-post and re-pin
+if [[ "$HTTP_STATUS" == "404" || "$HTTP_STATUS" == "400" ]]; then
+    echo "Message not found (HTTP $HTTP_STATUS) — re-posting..."
+    bash "$SCRIPT_DIR/discord_notify.sh"
+fi
