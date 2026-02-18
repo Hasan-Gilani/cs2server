@@ -55,13 +55,11 @@ done
 
 TIMESTAMP="$(date -u '+%H:%M UTC')"
 
-# Build HTTPS connect URL (GitHub Pages redirect → steam://)
-# Password is passed as a URL parameter and hidden behind the link text in Discord.
-CONNECT_BASE="https://hasan-gilani.github.io/cs2server/connect.html"
+# Build steam:// connect URL — password hidden behind link text in Discord
 if [[ -n "$SERVER_PASSWORD" ]]; then
-    CONNECT_URL="${CONNECT_BASE}?ip=${PUBLIC_IP}&port=${PORT}&pw=${SERVER_PASSWORD}"
+    CONNECT_URL="steam://connect/${PUBLIC_IP}:${PORT}/${SERVER_PASSWORD}"
 else
-    CONNECT_URL="${CONNECT_BASE}?ip=${PUBLIC_IP}&port=${PORT}"
+    CONNECT_URL="steam://connect/${PUBLIC_IP}:${PORT}"
 fi
 
 PAYLOAD=$(cat <<EOF
