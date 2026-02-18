@@ -24,6 +24,7 @@ fi
 DISCORD_BOT_TOKEN="${DISCORD_BOT_TOKEN:-}"
 SERVER_NAME="${SERVER_NAME:-CS2 Server}"
 PORT="${PORT:-27015}"
+SERVER_PASSWORD="${SERVER_PASSWORD:-}"
 
 # ── Fetch public IP (EC2 IMDSv2, falls back to IMDSv1) ───────────────────────
 get_public_ip() {
@@ -54,16 +55,23 @@ done
 
 TIMESTAMP="$(date -u '+%H:%M UTC')"
 
+# Build steam:// connect URL (includes password if set)
+if [[ -n "$SERVER_PASSWORD" ]]; then
+    STEAM_URL="steam://connect/$PUBLIC_IP:$PORT/$SERVER_PASSWORD"
+else
+    STEAM_URL="steam://connect/$PUBLIC_IP:$PORT"
+fi
+
 PAYLOAD=$(cat <<EOF
 {
   "embeds": [{
     "title": ":yellow_circle: $SERVER_NAME — Starting",
     "color": 15844367,
     "fields": [
-      { "name": "IP",      "value": "\`$PUBLIC_IP:$PORT\`",        "inline": true },
-      { "name": "Players", "value": "—",                            "inline": true },
-      { "name": "Map",     "value": "—",                            "inline": true },
-      { "name": "Connect", "value": "\`connect $PUBLIC_IP:$PORT\`", "inline": false }
+      { "name": "IP",      "value": "\`$PUBLIC_IP:$PORT\`",                     "inline": true },
+      { "name": "Players", "value": "—",                                         "inline": true },
+      { "name": "Map",     "value": "—",                                         "inline": true },
+      { "name": "Connect", "value": "[▶ Join Server]($STEAM_URL)\n\`connect $PUBLIC_IP:$PORT\`", "inline": false }
     ],
     "footer": { "text": "Updated $TIMESTAMP • refreshes every minute" }
   }]

@@ -25,6 +25,7 @@ PUBLIC_IP=$(grep  '^PUBLIC_IP='  "$STATE_FILE" | cut -d= -f2-)
 
 PORT="${PORT:-27015}"
 SERVER_NAME="${SERVER_NAME:-CS2 Server}"
+SERVER_PASSWORD="${SERVER_PASSWORD:-}"
 
 # ── Query CS2 via A2S_INFO (Source query protocol) ───────────────────────────
 # Outputs: players|max_players|map_name   or   offline
@@ -76,6 +77,13 @@ PYEOF
 
 TIMESTAMP="$(date -u '+%H:%M UTC')"
 
+# Build steam:// connect URL (includes password if set)
+if [[ -n "$SERVER_PASSWORD" ]]; then
+    STEAM_URL="steam://connect/$PUBLIC_IP:$PORT/$SERVER_PASSWORD"
+else
+    STEAM_URL="steam://connect/$PUBLIC_IP:$PORT"
+fi
+
 # ── Build embed based on CS2 state ───────────────────────────────────────────
 # Status is determined entirely by whether CS2 responds to A2S_INFO queries.
 # EC2 instance state is irrelevant.
@@ -110,7 +118,7 @@ PAYLOAD=$(cat <<EOF
       { "name": "IP",      "value": "\`$PUBLIC_IP:$PORT\`",        "inline": true },
       { "name": "Players", "value": "$PLAYERS_VAL",                "inline": true },
       { "name": "Map",     "value": "$MAP_VAL",                    "inline": true },
-      { "name": "Connect", "value": "\`connect $PUBLIC_IP:$PORT\`", "inline": false }
+      { "name": "Connect", "value": "[▶ Join Server]($STEAM_URL)\n\`connect $PUBLIC_IP:$PORT\`", "inline": false }
     ],
     "footer": { "text": "Updated $TIMESTAMP • refreshes every minute" }
   }]
