@@ -1,0 +1,14 @@
+# Secrets & keys
+.env
+*.pem
+
+# Logs
+*.log
+install.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude
+.claude/
