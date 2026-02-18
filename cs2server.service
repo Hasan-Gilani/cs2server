@@ -4,10 +4,11 @@ After=network-online.target discord-notify.service
 Wants=network-online.target
 
 [Service]
-Type=oneshot
-RemainAfterExit=yes
+Type=simple
 User=ubuntu
 ExecStart=/bin/bash /home/ubuntu/start.sh
+Restart=on-failure
+RestartSec=10
 StandardOutput=journal
 StandardError=journal
 
