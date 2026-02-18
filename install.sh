@@ -91,15 +91,19 @@ if [[ -f "$SCRIPT_DIR/cfg/autoexec.cfg" ]]; then
 fi
 
 # Make start/update scripts executable
-chmod +x "$SCRIPT_DIR/start.sh" "$SCRIPT_DIR/update.sh" "$SCRIPT_DIR/discord_notify.sh" 2>/dev/null || true
+chmod +x "$SCRIPT_DIR/start.sh" "$SCRIPT_DIR/update.sh" \
+    "$SCRIPT_DIR/discord_notify.sh" "$SCRIPT_DIR/discord_status.sh" 2>/dev/null || true
 
-# ── Install Discord startup notification service ───────────────────────────────
+# ── Install Discord notification service + live status timer ──────────────────
 if [[ -f "$SCRIPT_DIR/discord-notify.service" ]]; then
-    echo "Installing discord-notify systemd service..."
-    sudo cp "$SCRIPT_DIR/discord-notify.service" /etc/systemd/system/discord-notify.service
+    echo "Installing Discord systemd units..."
+    sudo cp "$SCRIPT_DIR/discord-notify.service"  /etc/systemd/system/discord-notify.service
+    sudo cp "$SCRIPT_DIR/discord-status.service"  /etc/systemd/system/discord-status.service
+    sudo cp "$SCRIPT_DIR/discord-status.timer"    /etc/systemd/system/discord-status.timer
     sudo systemctl daemon-reload
     sudo systemctl enable discord-notify.service
-    echo "discord-notify.service enabled (runs on every boot)."
+    sudo systemctl enable discord-status.timer
+    echo "discord-notify.service and discord-status.timer enabled."
 fi
 
 echo ""

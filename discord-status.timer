@@ -1,0 +1,11 @@
+[Unit]
+Description=CS2 Discord Status Updater (every minute)
+After=discord-notify.service
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=1min
+Unit=discord-status.service
+
+[Install]
+WantedBy=timers.target

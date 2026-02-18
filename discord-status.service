@@ -1,0 +1,9 @@
+[Unit]
+Description=CS2 Discord Status Update
+
+[Service]
+Type=oneshot
+User=ubuntu
+ExecStart=/bin/bash /home/ubuntu/discord_status.sh
+StandardOutput=journal
+StandardError=journal

@@ -1,11 +1,12 @@
 #!/bin/bash
 # CS2 Server — Discord startup notification
-# Fetches this EC2 instance's public IP and sends it to a Discord webhook.
-# Designed to run as a systemd one-shot service on boot.
+# Posts the server's public IP to a Discord webhook on boot.
+# Saves the message ID so discord_status.sh can edit it live.
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+STATE_FILE="$HOME/.cs2_discord_state"
 
 if [[ -f "$SCRIPT_DIR/.env" ]]; then
     source "$SCRIPT_DIR/.env"
@@ -35,56 +36,60 @@ get_public_ip() {
             -H "X-aws-ec2-metadata-token: $token" \
             "http://169.254.169.254/latest/meta-data/public-ipv4" 2>/dev/null || true
     else
-        # IMDSv1 fallback
         curl -sf --connect-timeout 5 \
             "http://169.254.169.254/latest/meta-data/public-ipv4" 2>/dev/null || true
     fi
 }
 
-# Retry up to 12 times (60 s) — metadata service may not be ready instantly
+# Retry up to 12 times (60 s)
 PUBLIC_IP=""
 for i in $(seq 1 12); do
     PUBLIC_IP=$(get_public_ip)
-    if [[ -n "$PUBLIC_IP" ]]; then
-        break
-    fi
+    if [[ -n "$PUBLIC_IP" ]]; then break; fi
     echo "Waiting for instance metadata... (attempt $i/12)"
     sleep 5
 done
 
 if [[ -z "$PUBLIC_IP" ]]; then
-    echo "WARNING: Could not retrieve public IP. Sending notification without it."
+    echo "WARNING: Could not retrieve public IP."
     PUBLIC_IP="(unknown)"
 fi
 
-# ── Build Discord message ─────────────────────────────────────────────────────
-TIMESTAMP="$(date -u '+%Y-%m-%d %H:%M UTC')"
+TIMESTAMP="$(date -u '+%H:%M UTC')"
 
 PAYLOAD=$(cat <<EOF
 {
   "embeds": [{
-    "title": ":green_circle: CS2 Server Online",
-    "color": 3066993,
+    "title": ":yellow_circle: $SERVER_NAME — Starting",
+    "color": 15844367,
     "fields": [
-      { "name": "Server",    "value": "$SERVER_NAME",         "inline": true },
-      { "name": "IP",        "value": "\`$PUBLIC_IP:$PORT\`",  "inline": true },
-      { "name": "Connect",   "value": "\`connect $PUBLIC_IP:$PORT\`", "inline": false }
+      { "name": "IP",      "value": "\`$PUBLIC_IP:$PORT\`",        "inline": true },
+      { "name": "Players", "value": "Starting...",                  "inline": true },
+      { "name": "Map",     "value": "—",                            "inline": true },
+      { "name": "Connect", "value": "\`connect $PUBLIC_IP:$PORT\`", "inline": false }
     ],
-    "footer": { "text": "$TIMESTAMP" }
+    "footer": { "text": "Updated $TIMESTAMP • refreshes every minute" }
   }]
 }
 EOF
 )
 
-# ── POST to Discord ───────────────────────────────────────────────────────────
-HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-    -X POST "$DISCORD_WEBHOOK_URL" \
+# ── POST (wait=true to get message ID back) ───────────────────────────────────
+RESPONSE=$(curl -s -X POST "${DISCORD_WEBHOOK_URL}?wait=true" \
     -H "Content-Type: application/json" \
     -d "$PAYLOAD")
 
-if [[ "$HTTP_STATUS" == "204" ]]; then
-    echo "Discord notification sent. IP: $PUBLIC_IP:$PORT"
-else
-    echo "Discord webhook returned HTTP $HTTP_STATUS"
+MESSAGE_ID=$(echo "$RESPONSE" | python3 -c "import json,sys; print(json.load(sys.stdin)['id'])" 2>/dev/null || true)
+
+if [[ -z "$MESSAGE_ID" ]]; then
+    echo "Failed to get message ID from Discord response: $RESPONSE"
     exit 1
 fi
+
+# Save state for discord_status.sh
+cat > "$STATE_FILE" <<EOF
+MESSAGE_ID=$MESSAGE_ID
+PUBLIC_IP=$PUBLIC_IP
+EOF
+
+echo "Discord notification sent. IP: $PUBLIC_IP:$PORT (message ID: $MESSAGE_ID)"
