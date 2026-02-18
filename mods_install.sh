@@ -60,6 +60,27 @@ curl -sL "https://github.com/daffyyyy/CS2-SimpleAdmin/releases/download/build-1.
 unzip -q -o "$TMP_DIR/statusblocker.zip" -d "$ADDONS_DIR"
 log "StatusBlocker installed."
 
+# ── 6. AnyBaseLib (shared library — required by PlayerSettings & MenuManager) ──
+log "Installing AnyBaseLib..."
+curl -sL "https://github.com/NickFox007/AnyBaseLibCS2/releases/download/0.9.4/AnyBaseLib.zip" \
+    -o "$TMP_DIR/anybaselib.zip"
+unzip -q -o "$TMP_DIR/anybaselib.zip" -d "$CSGO_DIR"
+log "AnyBaseLib 0.9.4 installed."
+
+# ── 7. MenuManager ────────────────────────────────────────────────────────────
+log "Installing MenuManager..."
+curl -sL "https://github.com/NickFox007/MenuManagerCS2/releases/download/1.4.1/MenuManager.zip" \
+    -o "$TMP_DIR/menumanager.zip"
+unzip -q -o "$TMP_DIR/menumanager.zip" -d "$CSGO_DIR"
+log "MenuManager 1.4.1 installed."
+
+# ── 8. PlayerSettings ─────────────────────────────────────────────────────────
+log "Installing PlayerSettings..."
+curl -sL "https://github.com/NickFox007/PlayerSettingsCS2/releases/download/0.9.3/PlayerSettings.zip" \
+    -o "$TMP_DIR/playersettings.zip"
+unzip -q -o "$TMP_DIR/playersettings.zip" -d "$CSGO_DIR"
+log "PlayerSettings 0.9.3 installed."
+
 # ── Summary ────────────────────────────────────────────────────────────────────
 echo ""
 echo "✔ All mods installed successfully."
