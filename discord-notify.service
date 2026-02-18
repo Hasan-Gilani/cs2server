@@ -1,0 +1,15 @@
+[Unit]
+Description=CS2 Server Discord Startup Notification
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=ubuntu
+ExecStart=/bin/bash /home/ubuntu/discord_notify.sh
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

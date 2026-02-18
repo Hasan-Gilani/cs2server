@@ -91,7 +91,16 @@ if [[ -f "$SCRIPT_DIR/cfg/autoexec.cfg" ]]; then
 fi
 
 # Make start/update scripts executable
-chmod +x "$SCRIPT_DIR/start.sh" "$SCRIPT_DIR/update.sh" 2>/dev/null || true
+chmod +x "$SCRIPT_DIR/start.sh" "$SCRIPT_DIR/update.sh" "$SCRIPT_DIR/discord_notify.sh" 2>/dev/null || true
+
+# ── Install Discord startup notification service ───────────────────────────────
+if [[ -f "$SCRIPT_DIR/discord-notify.service" ]]; then
+    echo "Installing discord-notify systemd service..."
+    sudo cp "$SCRIPT_DIR/discord-notify.service" /etc/systemd/system/discord-notify.service
+    sudo systemctl daemon-reload
+    sudo systemctl enable discord-notify.service
+    echo "discord-notify.service enabled (runs on every boot)."
+fi
 
 echo ""
 echo "========================================"
