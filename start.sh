@@ -35,6 +35,11 @@ if [[ ! -f "$CS2_BIN" ]]; then
     exit 1
 fi
 
+# ── Restore gameinfo.gi (overwritten by CS2 updates, required for Metamod) ────
+if [[ -f "$SCRIPT_DIR/gameinfo.gi" ]]; then
+    cp "$SCRIPT_DIR/gameinfo.gi" "$CS2_DIR/game/csgo/gameinfo.gi"
+fi
+
 # ── Steam runtime setup ───────────────────────────────────────────────────────
 # Ensure steamclient.so is discoverable by the game
 mkdir -p "$HOME/.steam/sdk64"
@@ -71,7 +76,7 @@ if [[ -n "$SERVER_PASSWORD" ]]; then
 fi
 
 # ── Launch mode ───────────────────────────────────────────────────────────────
-USE_SCREEN="${USE_SCREEN:-false}"
+USE_SCREEN="${USE_SCREEN:-true}"
 SCREEN_NAME="${SCREEN_NAME:-cs2server}"
 
 echo "Starting CS2 server: $SERVER_NAME"
