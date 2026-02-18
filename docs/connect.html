@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Connecting to CS2...</title>
+  <style>
+    body { font-family: sans-serif; background: #1a1a2e; color: #eee; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+    .box { text-align: center; }
+    .btn { display: inline-block; margin-top: 1rem; padding: .6rem 1.4rem; background: #f0a500; color: #000; border-radius: 6px; text-decoration: none; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>Launching CS2&hellip;</h2>
+    <p>Steam should open and connect automatically.</p>
+    <a class="btn" id="link" href="#">Click here if nothing happens</a>
+  </div>
+  <script>
+    const p   = new URLSearchParams(window.location.search);
+    const ip  = p.get('ip')   || '';
+    const port= p.get('port') || '27015';
+    const pw  = p.get('pw')   || '';
+    const url = pw ? `steam://connect/${ip}:${port}/${pw}`
+                   : `steam://connect/${ip}:${port}`;
+    document.getElementById('link').href = url;
+    window.location.href = url;
+  </script>
+</body>
+</html>
