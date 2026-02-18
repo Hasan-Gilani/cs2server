@@ -94,6 +94,15 @@ fi
 chmod +x "$SCRIPT_DIR/start.sh" "$SCRIPT_DIR/update.sh" \
     "$SCRIPT_DIR/discord_notify.sh" "$SCRIPT_DIR/discord_status.sh" 2>/dev/null || true
 
+# ── Install connect redirect server (port 8080 → steam://) ───────────────────
+if [[ -f "$SCRIPT_DIR/cs2-redirect.service" ]]; then
+    echo "Installing cs2-redirect systemd service..."
+    sudo cp "$SCRIPT_DIR/cs2-redirect.service" /etc/systemd/system/cs2-redirect.service
+    sudo systemctl daemon-reload
+    sudo systemctl enable cs2-redirect.service
+    echo "cs2-redirect.service enabled."
+fi
+
 # ── Install CS2 auto-start service ────────────────────────────────────────────
 if [[ -f "$SCRIPT_DIR/cs2server.service" ]]; then
     echo "Installing cs2server systemd service..."

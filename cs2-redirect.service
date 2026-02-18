@@ -1,0 +1,16 @@
+[Unit]
+Description=CS2 Connect Redirect Server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+ExecStart=/usr/bin/python3 /home/ubuntu/redirect_server.py
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

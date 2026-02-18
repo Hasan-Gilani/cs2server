@@ -77,12 +77,8 @@ PYEOF
 
 TIMESTAMP="$(date -u '+%H:%M UTC')"
 
-# Build steam:// connect URL — password hidden behind link text in Discord
-if [[ -n "$SERVER_PASSWORD" ]]; then
-    CONNECT_URL="steam://connect/${PUBLIC_IP}:${PORT}/${SERVER_PASSWORD}"
-else
-    CONNECT_URL="steam://connect/${PUBLIC_IP}:${PORT}"
-fi
+# Connect link — browser opens this, server redirects to steam://connect/...
+CONNECT_URL="http://${PUBLIC_IP}:8080/"
 
 # ── Build embed based on CS2 state ───────────────────────────────────────────
 # Status is determined entirely by whether CS2 responds to A2S_INFO queries.
