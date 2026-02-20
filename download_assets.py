@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Download all CS2 weapon models, skin textures, and HDR environment.
+Download all CS2 weapon models, skin textures (color + metalness), and HDR environment.
 Run on the server: python3 ~/download_assets.py
 Fully resumable — skips existing files.
 """
@@ -136,6 +136,59 @@ with ThreadPoolExecutor(max_workers=6) as pool:
             eta = (len(tasks) - done) / rate if rate > 0 else 0
             print(f'  [{done}/{len(tasks)}] ok={ok} skip={skip} miss={miss} err={err} '
                   f'({rate:.1f}/s, ETA {eta/60:.1f}m)')
+
+
+# ── 4. Metalness textures ─────────────────────────────────────────────────────
+
+print('\n=== Metalness textures ({paintId}_metal.png) ===')
+print(f'  {len(tasks)} metalness textures to check')
+
+ok = skip = miss = err = 0
+t0 = time.time()
+
+def fetch_metal(args):
+    wid, pid = args
+    dest = f'{TEXTURES_DIR}/{wid}/{pid}_metal.png'
+    if os.path.exists(dest) and os.path.getsize(dest) > 0:
+        return 'skip'
+    dest_webp = f'{TEXTURES_DIR}/{wid}/{pid}_metal.webp'
+    if os.path.exists(dest_webp) and os.path.getsize(dest_webp) > 0:
+        return 'skip'
+    # Try PNG first
+    url = f'{TEX_BASE}/{wid}/{pid}_metal.png'
+    r = sess.get(url, timeout=20)
+    if r.status_code == 200 and len(r.content) > 500:
+        os.makedirs(os.path.dirname(dest), exist_ok=True)
+        with open(dest, 'wb') as f:
+            f.write(r.content)
+        return 'ok'
+    # Try WebP
+    url_webp = f'{TEX_BASE}/{wid}/{pid}_metal.webp'
+    r2 = sess.get(url_webp, timeout=20)
+    if r2.status_code == 200 and len(r2.content) > 500:
+        os.makedirs(os.path.dirname(dest_webp), exist_ok=True)
+        with open(dest_webp, 'wb') as f:
+            f.write(r2.content)
+        return 'ok'
+    return 'miss'
+
+done = 0
+with ThreadPoolExecutor(max_workers=6) as pool:
+    futs = {pool.submit(fetch_metal, t): t for t in tasks}
+    for fut in as_completed(futs):
+        done += 1
+        result = fut.result()
+        if result == 'ok':     ok   += 1
+        elif result == 'skip': skip += 1
+        elif result == 'miss': miss += 1
+        else:                  err  += 1
+        if done % 100 == 0 or done == len(tasks):
+            elapsed = time.time() - t0
+            rate = done / elapsed if elapsed > 0 else 0
+            eta = (len(tasks) - done) / rate if rate > 0 else 0
+            print(f'  [{done}/{len(tasks)}] ok={ok} skip={skip} miss={miss} err={err} '
+                  f'({rate:.1f}/s, ETA {eta/60:.1f}m)')
+
 
 # ── Done ──────────────────────────────────────────────────────────────────────
 
