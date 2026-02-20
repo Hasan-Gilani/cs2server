@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CS2 Skins</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f1117;
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.5rem;
+    }
+    h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.5px; }
+    p  { color: #888; font-size: 0.95rem; }
+    a.btn {
+      display: inline-block;
+      padding: 0.65rem 1.6rem;
+      border-radius: 6px;
+      background: #1b87c5;
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      transition: background 0.15s;
+    }
+    a.btn:hover { background: #1470a8; }
+    #user { font-size: 0.9rem; color: #aaa; }
+    #user img { height: 32px; border-radius: 4px; vertical-align: middle; margin-right: 0.4rem; }
+  </style>
+</head>
+<body>
+  <h1>CS2 Skin Changer</h1>
+  <div id="user">Loading…</div>
+
+  <script>
+    fetch('/auth/me')
+      .then(r => r.json())
+      .then(data => {
+        const el = document.getElementById('user');
+        if (data.authenticated) {
+          el.innerHTML = `<img src="${data.avatar}" alt=""> ${data.name}
+            &nbsp;<a class="btn" href="#" onclick="logout()">Log out</a>`;
+        } else {
+          el.innerHTML = '<a class="btn" href="/auth/steam">Sign in with Steam</a>';
+        }
+      });
+
+    function logout() {
+      fetch('/auth/logout', { method: 'POST' })
+        .then(() => location.reload());
+    }
+  </script>
+
+  <!--
+    React build goes here.
+    When ready:
+      1. npm run build  (output to /var/www/cs2-skins/static/)
+      2. Replace this file with the React index.html
+      3. Point all /static/* references to the build output
+  -->
+</body>
+</html>

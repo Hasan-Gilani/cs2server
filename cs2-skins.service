@@ -1,0 +1,29 @@
+[Unit]
+Description=CS2 Skins Website (Gunicorn)
+After=network.target mysql.service
+Wants=mysql.service
+
+[Service]
+Type=notify
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/cs2-skins
+Environment="PATH=/var/www/cs2-skins/venv/bin"
+ExecStart=/var/www/cs2-skins/venv/bin/gunicorn \
+    --workers 4 \
+    --worker-class sync \
+    --bind unix:/run/cs2-skins/gunicorn.sock \
+    --umask 007 \
+    --timeout 60 \
+    --access-logfile /var/log/cs2-skins/access.log \
+    --error-logfile  /var/log/cs2-skins/error.log \
+    --log-level info \
+    wsgi:app
+
+RuntimeDirectory=cs2-skins
+RuntimeDirectoryMode=0755
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

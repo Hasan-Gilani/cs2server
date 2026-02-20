@@ -1,0 +1,68 @@
+// Per-weapon team restrictions. 't' = T-only, 'ct' = CT-only, 'both' = all teams.
+// Unlisted weapons default to 'both'.
+export const WEAPON_TEAMS = {
+  // T-only
+  weapon_ak47:     't',
+  weapon_glock:    't',
+  weapon_mac10:    't',
+  weapon_galilar:  't',
+  weapon_sg556:    't',
+  weapon_tec9:     't',
+  weapon_bizon:    't',
+  weapon_sawedoff: 't',
+  // CT-only
+  weapon_m4a1:          'ct',
+  weapon_m4a1_silencer: 'ct',
+  weapon_aug:           'ct',
+  weapon_famas:         'ct',
+  weapon_mp9:           'ct',
+  weapon_fiveseven:     'ct',
+  weapon_hkp2000:       'ct',
+  weapon_usp_silencer:  'ct',
+  weapon_mag7:          'ct',
+}
+
+export const WEAPON_CATEGORIES = {
+  Pistols:       ['weapon_deagle', 'weapon_elite', 'weapon_fiveseven', 'weapon_glock', 'weapon_hkp2000', 'weapon_p250', 'weapon_usp_silencer', 'weapon_cz75a', 'weapon_revolver', 'weapon_tec9'],
+  SMGs:          ['weapon_mac10', 'weapon_mp5sd', 'weapon_mp7', 'weapon_mp9', 'weapon_p90', 'weapon_bizon', 'weapon_ump45'],
+  Rifles:        ['weapon_ak47', 'weapon_aug', 'weapon_famas', 'weapon_galilar', 'weapon_m4a1', 'weapon_m4a1_silencer', 'weapon_sg556'],
+  'Sniper Rifles': ['weapon_awp', 'weapon_g3sg1', 'weapon_scar20', 'weapon_ssg08'],
+  Heavy:         ['weapon_nova', 'weapon_xm1014', 'weapon_sawedoff', 'weapon_mag7', 'weapon_m249', 'weapon_negev'],
+}
+
+export const WEAPON_NAMES = {
+  weapon_deagle:        'Desert Eagle',
+  weapon_elite:         'Dual Berettas',
+  weapon_fiveseven:     'Five-SeveN',
+  weapon_glock:         'Glock-18',
+  weapon_hkp2000:       'P2000',
+  weapon_p250:          'P250',
+  weapon_usp_silencer:  'USP-S',
+  weapon_cz75a:         'CZ75-Auto',
+  weapon_revolver:      'R8 Revolver',
+  weapon_tec9:          'Tec-9',
+  weapon_mac10:         'MAC-10',
+  weapon_mp5sd:         'MP5-SD',
+  weapon_mp7:           'MP7',
+  weapon_mp9:           'MP9',
+  weapon_p90:           'P90',
+  weapon_bizon:         'PP-Bizon',
+  weapon_ump45:         'UMP-45',
+  weapon_ak47:          'AK-47',
+  weapon_aug:           'AUG',
+  weapon_famas:         'FAMAS',
+  weapon_galilar:       'Galil AR',
+  weapon_m4a1:          'M4A4',
+  weapon_m4a1_silencer: 'M4A1-S',
+  weapon_sg556:         'SG 553',
+  weapon_awp:           'AWP',
+  weapon_g3sg1:         'G3SG1',
+  weapon_scar20:        'SCAR-20',
+  weapon_ssg08:         'SSG 08',
+  weapon_nova:          'Nova',
+  weapon_xm1014:        'XM1014',
+  weapon_sawedoff:      'Sawed-Off',
+  weapon_mag7:          'MAG-7',
+  weapon_m249:          'M249',
+  weapon_negev:         'Negev',
+}
